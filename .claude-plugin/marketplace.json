@@ -1,0 +1,13 @@
+{
+  "name": "phenoml-skills",
+  "owner": {
+    "name": "PhenoML",
+    "email": "hello@phenoml.com"
+  },
+  "plugins": [
+    {
+      "name": "phenoml-workflow",
+      "source": "./"
+    }
+  ]
+}

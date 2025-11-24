@@ -1,0 +1,12 @@
+{
+  "name": "phenoml-workflow",
+  "version": "0.0.1",
+  "description": "Create and execute PhenoML workflows for healthcare data processing, including condition creation from clinical notes and patient registration with deduplication",
+  "author": {
+    "name": "PhenoML",
+    "email": "hello@phenoml.com"
+  },
+  "skills": [
+    "./skills/phenoml-workflow"
+  ]
+}
