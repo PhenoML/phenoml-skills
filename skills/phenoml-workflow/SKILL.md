@@ -26,15 +26,15 @@ This skill provides a step-by-step interactive experience where the skill **gath
 **Step 1: Check FHIR Provider Setup**
 - Ask the user if they have already created a FHIR provider
 - If NO:
-  - Check if they have FHIR credentials in .env (FHIR_PROVIDER_BASE_URL, FHIR_PROVIDER_CLIENT_ID, FHIR_PROVIDER_CLIENT_SECRET)
-  - If not, guide them to add the credentials to .env with examples:
+  - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials
+  - If FHIR credentials are missing, guide them to add the credentials to .env with examples:
     - **Medplum**: `FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4`
     - **Athena**: `FHIR_PROVIDER_BASE_URL=https://api.preview.platform.athenahealth.com/fhir/r4`
     - **Epic**: `FHIR_PROVIDER_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4`
     - **Cerner**: `FHIR_PROVIDER_BASE_URL=https://fhir-myrecord.cerner.com/r4/[tenant-id]`
   - Run `python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py` to create the provider
   - The script will save FHIR_PROVIDER_ID to .env automatically
-- If YES: Verify the FHIR_PROVIDER_ID exists in their .env file
+- If YES: Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR_PROVIDER_ID is set
 
 **Step 2: Gather Workflow Requirements**
 - Ask what type of data they want the workflow to process (e.g., clinical notes, patient demographics, lab results)
@@ -75,6 +75,42 @@ This skill provides a step-by-step interactive experience where the skill **gath
 8. **Offer examples** - When asking for user input, always provide clear examples
 
 ### Available Scripts
+
+#### 0. check_env.py
+**Location:** `.claude/skills/phenoml-workflow/scripts/check_env.py`
+
+**Purpose:** Safely verifies which environment variables are set without exposing their values
+
+**How it works:**
+- Loads .env file using python-dotenv
+- Checks presence of required credentials (returns TRUE/FALSE only)
+- Never exposes actual credential values
+- Provides clear guidance on missing credentials
+
+**Usage:**
+```bash
+# Check all credentials (formatted output)
+python3 .claude/skills/phenoml-workflow/scripts/check_env.py
+
+# JSON output only
+python3 .claude/skills/phenoml-workflow/scripts/check_env.py --json
+
+# Verbose output (formatted + JSON)
+python3 .claude/skills/phenoml-workflow/scripts/check_env.py --verbose
+
+# Show help
+python3 .claude/skills/phenoml-workflow/scripts/check_env.py --help
+```
+
+**Security:**
+- This script is designed to prevent credential leakage in LLM conversations
+- It only reports TRUE/FALSE for each credential, never the actual values
+- Safe to run in any context where credentials need to be verified
+
+**Outputs:**
+- Formatted status report with ✅/❌ indicators
+- Guidance on missing credentials
+- Exit code 1 if core credentials are missing
 
 #### 1. setup_fhir_provider.py
 **Location:** `.claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py`
@@ -196,17 +232,15 @@ python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py --help
 When a user asks to "create a workflow to process clinical notes", follow this flow:
 
 1. **Check Prerequisites:**
-   ```python
-   # First, check if .env file exists and has required credentials
-   # If not, guide user to create it
-   ```
+   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials
+   - If credentials are missing, guide user to add them to .env
 
 2. **Ask About FHIR Provider:**
    - "Have you already set up a FHIR provider connection? (yes/no)"
 
 3. **If NO - Set Up Provider:**
-   - Check if FHIR_PROVIDER_BASE_URL, FHIR_PROVIDER_CLIENT_ID, FHIR_PROVIDER_CLIENT_SECRET are in .env
-   - If not, guide user to add them to .env with examples:
+   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR credentials
+   - If FHIR credentials are missing, guide user to add them to .env with examples:
      - **Medplum**: `FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4`
      - **Athena**: `FHIR_PROVIDER_BASE_URL=https://api.preview.platform.athenahealth.com/fhir/r4`
      - **Epic**: `FHIR_PROVIDER_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4`
@@ -215,7 +249,7 @@ When a user asks to "create a workflow to process clinical notes", follow this f
    - Script will save FHIR_PROVIDER_ID to .env
 
 4. **If YES - Verify Provider:**
-   - Check that FHIR_PROVIDER_ID exists in .env
+   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR_PROVIDER_ID is set
    - If not found, run setup_fhir_provider.py
 
 5. **Gather Workflow Requirements:**
