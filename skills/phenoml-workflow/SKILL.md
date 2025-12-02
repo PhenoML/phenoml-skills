@@ -23,6 +23,13 @@ Use this skill when users want to:
 
 This skill provides a step-by-step interactive experience where the skill **gathers information from the user conversationally**, then **executes reusable Python scripts** with that information to create and test workflows.
 
+**Step 0: Ensure Dependencies are Installed**
+- Before running any scripts, ensure the required Python packages are installed:
+  ```bash
+  pip install python-dotenv phenoml
+  ```
+- If the user gets import errors when running scripts, guide them to install these packages
+
 **Step 1: Check FHIR Provider Setup**
 - First, locate and run `check_env.py` (search for it using glob `**/check_env.py`) to check credentials and detect instance type
 - **If SHARED EXPERIMENT is detected** (experiment.app.pheno.ml):
@@ -331,10 +338,10 @@ When a user asks to "create a workflow to process clinical notes", follow this f
 ### Setup Requirements
 
 Before creating workflows, ensure you have:
-1. PhenoML credentials (username, password, base_url)
-2. **For shared experiment (experiment.app.pheno.ml):** No additional setup needed - uses pre-configured Medplum sandbox
-3. **For dedicated instances:** FHIR server connection details (client_id, client_secret, base_url)
-4. Python environment with `phenoml` and `python-dotenv` packages
+1. **Python packages installed:** `pip install python-dotenv phenoml`
+2. PhenoML credentials (username, password, base_url)
+3. **For shared experiment (experiment.app.pheno.ml):** No additional setup needed - uses pre-configured Medplum sandbox
+4. **For dedicated instances:** FHIR server connection details (client_id, client_secret, base_url)
 
 ### Step-by-Step Workflow Creation
 
