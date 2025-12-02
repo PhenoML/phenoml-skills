@@ -73,16 +73,19 @@ This skill provides a step-by-step interactive experience where the skill **gath
 
 1. **Gather information conversationally** - Ask the user questions first to understand their needs
 2. **Find and use the reusable scripts** - First locate the scripts using glob `**/phenoml-workflow/scripts/*.py`, then execute them with appropriate CLI arguments
-3. **Prefer CLI arguments over .env** - For workflow-specific data (name, instructions, test data), pass via CLI args rather than adding to .env
-4. **Use .env for credentials** - Guide users to store credentials (PHENOML_*, MEDPLUM_*, etc.) in .env for security
-5. **Guide progressively** - Go step-by-step, ensuring each step completes before moving to the next
-6. **Confirm before executing** - Before running each script, explain what it will do
-7. **Provide context** - Explain why each step is necessary and what it accomplishes
-8. **Offer examples** - When asking for user input, always provide clear examples
+3. **Always pass --env-file** - Since the scripts may be in a different directory than the user's project, always pass `--env-file /path/to/user/project/.env` to ensure the scripts find the correct .env file (use the user's current working directory)
+4. **Prefer CLI arguments over .env** - For workflow-specific data (name, instructions, test data), pass via CLI args rather than adding to .env
+5. **Use .env for credentials** - Guide users to store credentials (PHENOML_*, MEDPLUM_*, etc.) in .env for security
+6. **Guide progressively** - Go step-by-step, ensuring each step completes before moving to the next
+7. **Confirm before executing** - Before running each script, explain what it will do
+8. **Provide context** - Explain why each step is necessary and what it accomplishes
+9. **Offer examples** - When asking for user input, always provide clear examples
 
 ### Available Scripts
 
-**Important:** Before running any script, first locate it using glob `**/phenoml-workflow/scripts/*.py` to find the correct path.
+**Important:**
+1. Before running any script, first locate it using glob `**/phenoml-workflow/scripts/*.py` to find the correct path.
+2. Always pass `--env-file` pointing to the user's project .env file (their current working directory).
 
 #### 0. check_env.py
 
@@ -96,17 +99,14 @@ This skill provides a step-by-step interactive experience where the skill **gath
 
 **Usage:**
 ```bash
-# Check all credentials (formatted output)
-python3 /path/to/check_env.py
+# Check all credentials (pass user's .env path)
+python3 /path/to/check_env.py --env-file /user/project/.env
 
 # JSON output only
-python3 /path/to/check_env.py --json
+python3 /path/to/check_env.py --env-file /user/project/.env --json
 
 # Verbose output (formatted + JSON)
-python3 /path/to/check_env.py --verbose
-
-# Show help
-python3 /path/to/check_env.py --help
+python3 /path/to/check_env.py --env-file /user/project/.env --verbose
 ```
 
 **Security:**
@@ -131,13 +131,10 @@ python3 /path/to/check_env.py --help
 **Usage:**
 ```bash
 # Create provider using .env credentials
-python3 /path/to/setup_fhir_provider.py
+python3 /path/to/setup_fhir_provider.py --env-file /user/project/.env
 
 # With custom name and provider type
-python3 /path/to/setup_fhir_provider.py --name "My FHIR Server" --provider athena
-
-# Show help
-python3 /path/to/setup_fhir_provider.py --help
+python3 /path/to/setup_fhir_provider.py --env-file /user/project/.env --name "My FHIR Server" --provider athena
 ```
 
 **Required .env variables:**
@@ -171,16 +168,14 @@ python3 /path/to/setup_fhir_provider.py --help
 ```bash
 # Create workflow with CLI arguments (recommended)
 python3 /path/to/create_workflow.py \
+  --env-file /user/project/.env \
   --name "Extract Conditions" \
   --instructions "You are a helpful agent who..." \
   --sample-data '{"patient_last_name": "Smith", "diagnosis_text": "hypertension"}' \
   --dynamic-generation true
 
 # Create workflow using .env variables
-python3 /path/to/create_workflow.py
-
-# Show help
-python3 /path/to/create_workflow.py --help
+python3 /path/to/create_workflow.py --env-file /user/project/.env
 ```
 
 **Required:**
@@ -209,19 +204,19 @@ python3 /path/to/create_workflow.py --help
 ```bash
 # Test with CLI arguments (recommended)
 python3 /path/to/test_workflow.py \
+  --env-file /user/project/.env \
   --input-data '{"patient_last_name": "Rippin", "patient_first_name": "Clay", "diagnosis_text": "diabetes"}'
 
 # Test with JSON file
 python3 /path/to/test_workflow.py \
+  --env-file /user/project/.env \
   --input-file test_data.json
 
 # Save results to file
 python3 /path/to/test_workflow.py \
+  --env-file /user/project/.env \
   --input-data '{"patient": "Smith"}' \
   --output-file results.json
-
-# Show help
-python3 /path/to/test_workflow.py --help
 ```
 
 **Required:**
@@ -276,9 +271,10 @@ When a user asks to "create a workflow to process clinical notes", follow this f
 7. **Create the Workflow:**
    - Gather workflow details conversationally (name, instructions, sample data structure)
    - Determine if dynamic_generation should be true/false based on workflow type
-   - Run `create_workflow.py` with CLI arguments:
+   - Run `create_workflow.py` with CLI arguments (always include --env-file):
    ```bash
    python3 /path/to/create_workflow.py \
+     --env-file /user/project/.env \
      --name "Workflow Name" \
      --instructions "Detailed instructions..." \
      --sample-data '{"key": "value"}' \
@@ -288,9 +284,10 @@ When a user asks to "create a workflow to process clinical notes", follow this f
 
 8. **Test the Workflow:**
    - Ask what data they want to test with
-   - Run `test_workflow.py` with CLI arguments:
+   - Run `test_workflow.py` with CLI arguments (always include --env-file):
    ```bash
    python3 /path/to/test_workflow.py \
+     --env-file /user/project/.env \
      --input-data '{"patient_last_name": "Smith", ...}'
    ```
    - Shows execution results

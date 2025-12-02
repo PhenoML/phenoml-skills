@@ -31,10 +31,8 @@ import argparse
 from phenoml import Client
 from dotenv import load_dotenv
 
-def save_to_env(key, value):
+def save_to_env(key, value, env_file=".env"):
     """Save or update a key-value pair in .env file"""
-    env_file = ".env"
-
     if not os.path.exists(env_file):
         with open(env_file, 'w') as f:
             f.write(f"{key}={value}\n")
@@ -66,11 +64,13 @@ def main():
     parser.add_argument('--base-url', help='FHIR base URL')
     parser.add_argument('--client-id', help='Client ID')
     parser.add_argument('--client-secret', help='Client secret')
+    parser.add_argument('--env-file', help='Path to .env file (defaults to .env in current directory)')
 
     args = parser.parse_args()
 
     # Load environment
-    load_dotenv()
+    env_file = args.env_file or ".env"
+    load_dotenv(env_file)
 
     # Get configuration (CLI args override .env)
     name = args.name or os.getenv("FHIR_PROVIDER_NAME", "FHIR Server")
@@ -139,7 +139,7 @@ def main():
         print(f"   Provider ID: {provider_id}\n")
 
         # Save to .env
-        save_to_env("FHIR_PROVIDER_ID", provider_id)
+        save_to_env("FHIR_PROVIDER_ID", provider_id, env_file)
         print(f"💾 Provider ID saved to .env")
         print(f"\n🎉 Setup complete! You can now create workflows using this provider.")
 

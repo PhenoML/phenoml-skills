@@ -31,11 +31,13 @@ def main():
     parser.add_argument('--input-data', help='Input data as JSON string')
     parser.add_argument('--input-file', help='Path to JSON file with input data')
     parser.add_argument('--output-file', help='Save results to JSON file')
+    parser.add_argument('--env-file', help='Path to .env file (defaults to .env in current directory)')
 
     args = parser.parse_args()
 
     # Load environment
-    load_dotenv()
+    env_file = args.env_file or ".env"
+    load_dotenv(env_file)
 
     # Get configuration (CLI args override .env)
     workflow_id = args.workflow_id or os.getenv("WORKFLOW_ID")

@@ -32,10 +32,8 @@ import argparse
 from phenoml import Client
 from dotenv import load_dotenv
 
-def save_to_env(key, value):
+def save_to_env(key, value, env_file=".env"):
     """Save or update a key-value pair in .env file"""
-    env_file = ".env"
-
     if not os.path.exists(env_file):
         with open(env_file, 'w') as f:
             f.write(f"{key}={value}\n")
@@ -79,11 +77,13 @@ def main():
     parser.add_argument('--dynamic-generation', type=str_to_bool, help='Enable dynamic generation (true/false)')
     parser.add_argument('--verbose', type=str_to_bool, help='Verbose mode (true/false)')
     parser.add_argument('--provider-id', help='FHIR provider ID (overrides .env)')
+    parser.add_argument('--env-file', help='Path to .env file (defaults to .env in current directory)')
 
     args = parser.parse_args()
 
     # Load environment
-    load_dotenv()
+    env_file = args.env_file or ".env"
+    load_dotenv(env_file)
 
     # Get configuration (CLI args override .env)
     name = args.name or os.getenv("WORKFLOW_NAME")
@@ -167,7 +167,7 @@ def main():
         print(f"   Workflow ID: {workflow_id}\n")
 
         # Save to .env
-        save_to_env("WORKFLOW_ID", workflow_id)
+        save_to_env("WORKFLOW_ID", workflow_id, env_file)
         print(f"💾 Workflow ID saved to .env")
         print(f"\n🎉 Workflow creation complete! You can now test it with test_workflow.py")
 

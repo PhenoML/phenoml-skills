@@ -23,9 +23,12 @@ def is_shared_experiment():
     base_url = os.getenv("PHENOML_BASE_URL", "")
     return "experiment" in base_url.lower()
 
-def check_env_vars():
+def check_env_vars(env_file=None):
     """Check presence of required environment variables without exposing values"""
-    load_dotenv()
+    if env_file:
+        load_dotenv(env_file)
+    else:
+        load_dotenv()
 
     shared_experiment = is_shared_experiment()
 
@@ -155,10 +158,15 @@ def main():
         action='store_true',
         help='Include JSON output with formatted output'
     )
+    parser.add_argument(
+        '--env-file',
+        type=str,
+        help='Path to .env file (defaults to .env in current directory)'
+    )
 
     args = parser.parse_args()
 
-    status = check_env_vars()
+    status = check_env_vars(env_file=args.env_file)
 
     if args.json:
         print(json.dumps(status, indent=2))
