@@ -12,6 +12,8 @@ Usage:
 Required .env variables:
   PHENOML_USERNAME, PHENOML_PASSWORD, PHENOML_BASE_URL
   FHIR_PROVIDER_ID (from setup_fhir_provider.py)
+    - Note: For shared experiment (experiment.app.pheno.ml),
+      FHIR_PROVIDER_ID is optional and defaults to "experiment-default"
 
 Workflow configuration (.env or CLI args):
   WORKFLOW_NAME or --name
@@ -61,6 +63,14 @@ def str_to_bool(s):
     """Convert string to boolean"""
     return s.lower() in ('true', '1', 'yes', 'y')
 
+# Default FHIR provider ID for shared experiment users
+SHARED_EXPERIMENT_DEFAULT_FHIR_PROVIDER_ID = "experiment-default"
+
+def is_shared_experiment():
+    """Check if the user is on shared experiment (experiment.app.pheno.ml) based on PHENOML_BASE_URL"""
+    base_url = os.getenv("PHENOML_BASE_URL", "")
+    return "experiment" in base_url.lower()
+
 def main():
     parser = argparse.ArgumentParser(description='Create a PhenoML workflow')
     parser.add_argument('--name', help='Workflow name')
@@ -82,6 +92,12 @@ def main():
     dynamic_generation = args.dynamic_generation if args.dynamic_generation is not None else str_to_bool(os.getenv("WORKFLOW_DYNAMIC_GENERATION", "true"))
     verbose = args.verbose if args.verbose is not None else str_to_bool(os.getenv("WORKFLOW_VERBOSE", "false"))
     provider_id = args.provider_id or os.getenv("FHIR_PROVIDER_ID")
+
+    # For shared experiment, use default FHIR provider ID if not specified
+    using_shared_experiment_default = False
+    if not provider_id and is_shared_experiment():
+        provider_id = SHARED_EXPERIMENT_DEFAULT_FHIR_PROVIDER_ID
+        using_shared_experiment_default = True
 
     # Validate required fields
     if not name:
@@ -128,7 +144,10 @@ def main():
     # Create workflow
     print(f"Creating workflow:")
     print(f"  Name: {name}")
-    print(f"  Provider ID: {provider_id}")
+    if using_shared_experiment_default:
+        print(f"  Provider ID: {provider_id} (shared experiment default)")
+    else:
+        print(f"  Provider ID: {provider_id}")
     print(f"  Dynamic generation: {dynamic_generation}")
     print(f"  Verbose: {verbose}")
     print(f"  Sample data: {json.dumps(sample_data, indent=2)}\n")
