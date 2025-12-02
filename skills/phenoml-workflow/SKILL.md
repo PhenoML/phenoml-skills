@@ -24,7 +24,13 @@ Use this skill when users want to:
 This skill provides a step-by-step interactive experience where the skill **gathers information from the user conversationally**, then **executes reusable Python scripts** with that information to create and test workflows.
 
 **Step 1: Check FHIR Provider Setup**
-- Ask the user if they have already created a FHIR provider
+- First, run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to check credentials and detect instance type
+- **If SHARED EXPERIMENT is detected** (experiment.app.pheno.ml):
+  - **Skip FHIR provider setup entirely** - shared experiment uses a pre-configured Medplum sandbox
+  - The system automatically uses "experiment-default" as the FHIR_PROVIDER_ID
+  - No FHIR credentials (CLIENT_ID, CLIENT_SECRET, BASE_URL) are required
+  - Proceed directly to Step 2 (Gather Workflow Requirements)
+- **If on a DEDICATED INSTANCE** (e.g., acme.app.pheno.ml), ask the user if they have already created a FHIR provider
 - If NO:
   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials
   - If FHIR credentials are missing, guide them to add the credentials to .env with examples:
@@ -180,6 +186,7 @@ python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py --help
 
 **Required:**
 - FHIR_PROVIDER_ID in .env (from setup_fhir_provider.py)
+  - **Note:** For shared experiment (experiment.app.pheno.ml), FHIR_PROVIDER_ID is optional and defaults to "experiment-default"
 - Workflow name, instructions, and sample data (via CLI args or .env)
 
 **Optional .env variables:**
@@ -231,14 +238,21 @@ python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py --help
 
 When a user asks to "create a workflow to process clinical notes", follow this flow:
 
-1. **Check Prerequisites:**
-   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials
+1. **Check Prerequisites and Detect Instance Type:**
+   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials and detect instance type
    - If credentials are missing, guide user to add them to .env
 
-2. **Ask About FHIR Provider:**
-   - "Have you already set up a FHIR provider connection? (yes/no)"
+2. **Handle FHIR Provider Based on Instance Type:**
 
-3. **If NO - Set Up Provider:**
+   **If SHARED EXPERIMENT detected (experiment.app.pheno.ml):**
+   - Skip FHIR provider setup entirely
+   - Inform user: "You're on the shared experiment, which uses a pre-configured Medplum sandbox. No FHIR setup needed!"
+   - Proceed directly to step 5 (Gather Workflow Requirements)
+
+   **If on a DEDICATED INSTANCE (e.g., acme.app.pheno.ml):**
+   - Ask: "Have you already set up a FHIR provider connection? (yes/no)"
+
+3. **If NO - Set Up Provider (dedicated instance only):**
    - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR credentials
    - If FHIR credentials are missing, guide user to add them to .env with examples:
      - **Medplum**: `FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4`
@@ -248,7 +262,7 @@ When a user asks to "create a workflow to process clinical notes", follow this f
    - Run: `python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py`
    - Script will save FHIR_PROVIDER_ID to .env
 
-4. **If YES - Verify Provider:**
+4. **If YES - Verify Provider (dedicated instance only):**
    - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR_PROVIDER_ID is set
    - If not found, run setup_fhir_provider.py
 
@@ -319,8 +333,9 @@ When a user asks to "create a workflow to process clinical notes", follow this f
 
 Before creating workflows, ensure you have:
 1. PhenoML credentials (username, password, base_url)
-2. FHIR server connection details (client_id, client_secret, base_url)
-3. Python environment with `phenoml` and `python-dotenv` packages
+2. **For shared experiment (experiment.app.pheno.ml):** No additional setup needed - uses pre-configured Medplum sandbox
+3. **For dedicated instances:** FHIR server connection details (client_id, client_secret, base_url)
+4. Python environment with `phenoml` and `python-dotenv` packages
 
 ### Step-by-Step Workflow Creation
 

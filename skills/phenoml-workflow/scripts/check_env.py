@@ -18,9 +18,16 @@ import json
 import argparse
 from dotenv import load_dotenv
 
+def is_shared_experiment():
+    """Check if the user is on shared experiment (experiment.app.pheno.ml) based on PHENOML_BASE_URL"""
+    base_url = os.getenv("PHENOML_BASE_URL", "")
+    return "experiment" in base_url.lower()
+
 def check_env_vars():
     """Check presence of required environment variables without exposing values"""
     load_dotenv()
+
+    shared_experiment = is_shared_experiment()
 
     # Core credentials (always required)
     core_vars = {
@@ -29,7 +36,7 @@ def check_env_vars():
         "PHENOML_BASE_URL": bool(os.getenv("PHENOML_BASE_URL"))
     }
 
-    # FHIR provider credentials (required for setup)
+    # FHIR provider credentials (required for dedicated instances, NOT for shared experiment)
     fhir_credentials = {
         "FHIR_PROVIDER_BASE_URL": bool(os.getenv("FHIR_PROVIDER_BASE_URL")),
         "FHIR_PROVIDER_CLIENT_ID": bool(os.getenv("FHIR_PROVIDER_CLIENT_ID")),
@@ -37,15 +44,17 @@ def check_env_vars():
     }
 
     # Generated IDs (created by scripts)
+    # For shared experiment, FHIR_PROVIDER_ID defaults to "experiment-default"
     generated_ids = {
-        "FHIR_PROVIDER_ID": bool(os.getenv("FHIR_PROVIDER_ID")),
+        "FHIR_PROVIDER_ID": bool(os.getenv("FHIR_PROVIDER_ID")) or shared_experiment,
         "WORKFLOW_ID": bool(os.getenv("WORKFLOW_ID"))
     }
 
     return {
         "core_credentials": core_vars,
         "fhir_credentials": fhir_credentials,
-        "generated_ids": generated_ids
+        "generated_ids": generated_ids,
+        "shared_experiment": shared_experiment
     }
 
 def print_status(status, verbose=False):
@@ -54,8 +63,14 @@ def print_status(status, verbose=False):
     def check_mark(present):
         return "✅" if present else "❌"
 
+    shared_experiment = status.get("shared_experiment", False)
+
     print("\n" + "=" * 60)
     print("ENVIRONMENT VARIABLES STATUS")
+    if shared_experiment:
+        print("🧪 SHARED EXPERIMENT DETECTED (experiment.app.pheno.ml)")
+    else:
+        print("🏢 DEDICATED INSTANCE")
     print("=" * 60 + "\n")
 
     # Core credentials
@@ -71,36 +86,55 @@ def print_status(status, verbose=False):
         print("   PHENOML_BASE_URL=your_base_url")
 
     # FHIR credentials
-    print("\nFHIR Provider Credentials:")
-    for key, present in status["fhir_credentials"].items():
-        print(f"  {check_mark(present)} {key}")
+    if shared_experiment:
+        print("\nFHIR Provider Credentials: (not required for shared experiment)")
+        print("  ℹ️  Shared experiment uses pre-configured Medplum sandbox")
+    else:
+        print("\nFHIR Provider Credentials: (required for dedicated instance)")
+        for key, present in status["fhir_credentials"].items():
+            print(f"  {check_mark(present)} {key}")
 
-    fhir_ready = all(status["fhir_credentials"].values())
-    if not fhir_ready:
-        print("\n⚠️  Missing FHIR credentials. Add them to .env file:")
-        print("   FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4")
-        print("   FHIR_PROVIDER_CLIENT_ID=your_client_id")
-        print("   FHIR_PROVIDER_CLIENT_SECRET=your_client_secret")
+        fhir_ready = all(status["fhir_credentials"].values())
+        if not fhir_ready:
+            print("\n⚠️  Missing FHIR credentials. Add them to .env file:")
+            print("   FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4")
+            print("   FHIR_PROVIDER_CLIENT_ID=your_client_id")
+            print("   FHIR_PROVIDER_CLIENT_SECRET=your_client_secret")
 
     # Generated IDs
     print("\nGenerated IDs:")
-    for key, present in status["generated_ids"].items():
-        print(f"  {check_mark(present)} {key}")
+    if shared_experiment:
+        fhir_id_set = bool(os.getenv("FHIR_PROVIDER_ID"))
+        if fhir_id_set:
+            print(f"  {check_mark(True)} FHIR_PROVIDER_ID")
+        else:
+            print(f"  {check_mark(True)} FHIR_PROVIDER_ID (using shared experiment default)")
+    else:
+        print(f"  {check_mark(status['generated_ids']['FHIR_PROVIDER_ID'])} FHIR_PROVIDER_ID")
+    print(f"  {check_mark(status['generated_ids']['WORKFLOW_ID'])} WORKFLOW_ID")
 
-    if not status["generated_ids"]["FHIR_PROVIDER_ID"]:
+    if not shared_experiment and not status["generated_ids"]["FHIR_PROVIDER_ID"]:
         print("\n💡 Run setup_fhir_provider.py to create FHIR provider")
     if not status["generated_ids"]["WORKFLOW_ID"]:
         print("💡 Run create_workflow.py to create a workflow")
 
     # Overall status
     print("\n" + "=" * 60)
-    if core_ready and fhir_ready:
-        print("✅ Ready to create FHIR provider and workflows!")
-    elif core_ready:
-        print("✅ Core credentials ready")
-        print("⚠️  Add FHIR credentials to proceed with provider setup")
+    if shared_experiment:
+        if core_ready:
+            print("✅ Shared experiment ready to create workflows!")
+            print("   No FHIR provider setup needed - using Medplum sandbox")
+        else:
+            print("⚠️  Add missing core credentials to .env to proceed")
     else:
-        print("⚠️  Add missing credentials to .env to proceed")
+        fhir_ready = all(status["fhir_credentials"].values())
+        if core_ready and fhir_ready:
+            print("✅ Dedicated instance ready to create FHIR provider and workflows!")
+        elif core_ready:
+            print("✅ Core credentials ready")
+            print("⚠️  Add FHIR credentials to proceed with provider setup")
+        else:
+            print("⚠️  Add missing credentials to .env to proceed")
     print("=" * 60 + "\n")
 
     if verbose:
