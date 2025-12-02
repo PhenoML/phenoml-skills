@@ -18,16 +18,27 @@ import json
 import argparse
 from dotenv import load_dotenv
 
-def is_shared_experiment():
-    """Check if the user is on shared experiment (experiment.app.pheno.ml) based on PHENOML_BASE_URL"""
+def get_instance_type():
+    """
+    Determine instance type based on PHENOML_BASE_URL.
+    Returns: "shared_experiment", "dedicated", or "unknown"
+    """
     base_url = os.getenv("PHENOML_BASE_URL", "")
-    return "experiment" in base_url.lower()
+    if not base_url:
+        return "unknown"
+    if "experiment" in base_url.lower():
+        return "shared_experiment"
+    return "dedicated"
 
-def check_env_vars():
+def check_env_vars(env_file=None):
     """Check presence of required environment variables without exposing values"""
-    load_dotenv()
+    if env_file:
+        load_dotenv(env_file)
+    else:
+        load_dotenv()
 
-    shared_experiment = is_shared_experiment()
+    instance_type = get_instance_type()
+    is_shared = instance_type == "shared_experiment"
 
     # Core credentials (always required)
     core_vars = {
@@ -46,7 +57,7 @@ def check_env_vars():
     # Generated IDs (created by scripts)
     # For shared experiment, FHIR_PROVIDER_ID defaults to "experiment-default"
     generated_ids = {
-        "FHIR_PROVIDER_ID": bool(os.getenv("FHIR_PROVIDER_ID")) or shared_experiment,
+        "FHIR_PROVIDER_ID": bool(os.getenv("FHIR_PROVIDER_ID")) or is_shared,
         "WORKFLOW_ID": bool(os.getenv("WORKFLOW_ID"))
     }
 
@@ -54,7 +65,7 @@ def check_env_vars():
         "core_credentials": core_vars,
         "fhir_credentials": fhir_credentials,
         "generated_ids": generated_ids,
-        "shared_experiment": shared_experiment
+        "instance_type": instance_type
     }
 
 def print_status(status, verbose=False):
@@ -63,14 +74,19 @@ def print_status(status, verbose=False):
     def check_mark(present):
         return "✅" if present else "❌"
 
-    shared_experiment = status.get("shared_experiment", False)
+    instance_type = status.get("instance_type", "unknown")
+    is_shared = instance_type == "shared_experiment"
+    is_dedicated = instance_type == "dedicated"
+    is_unknown = instance_type == "unknown"
 
     print("\n" + "=" * 60)
     print("ENVIRONMENT VARIABLES STATUS")
-    if shared_experiment:
+    if is_shared:
         print("🧪 SHARED EXPERIMENT DETECTED (experiment.app.pheno.ml)")
-    else:
+    elif is_dedicated:
         print("🏢 DEDICATED INSTANCE")
+    else:
+        print("❓ INSTANCE TYPE UNKNOWN (PHENOML_BASE_URL not set)")
     print("=" * 60 + "\n")
 
     # Core credentials
@@ -84,11 +100,19 @@ def print_status(status, verbose=False):
         print("   PHENOML_USERNAME=your_username")
         print("   PHENOML_PASSWORD=your_password")
         print("   PHENOML_BASE_URL=your_base_url")
+        print("\n   Example PHENOML_BASE_URL values:")
+        print("   - Shared experiment: https://experiment.app.pheno.ml")
+        print("   - Dedicated instance: https://yourcompany.app.pheno.ml")
 
     # FHIR credentials
-    if shared_experiment:
+    if is_shared:
         print("\nFHIR Provider Credentials: (not required for shared experiment)")
         print("  ℹ️  Shared experiment uses pre-configured Medplum sandbox")
+    elif is_unknown:
+        print("\nFHIR Provider Credentials: (status depends on instance type)")
+        for key, present in status["fhir_credentials"].items():
+            print(f"  {check_mark(present)} {key}")
+        print("\n  ℹ️  Set PHENOML_BASE_URL first to determine if FHIR credentials are needed")
     else:
         print("\nFHIR Provider Credentials: (required for dedicated instance)")
         for key, present in status["fhir_credentials"].items():
@@ -103,7 +127,7 @@ def print_status(status, verbose=False):
 
     # Generated IDs
     print("\nGenerated IDs:")
-    if shared_experiment:
+    if is_shared:
         fhir_id_set = bool(os.getenv("FHIR_PROVIDER_ID"))
         if fhir_id_set:
             print(f"  {check_mark(True)} FHIR_PROVIDER_ID")
@@ -113,14 +137,16 @@ def print_status(status, verbose=False):
         print(f"  {check_mark(status['generated_ids']['FHIR_PROVIDER_ID'])} FHIR_PROVIDER_ID")
     print(f"  {check_mark(status['generated_ids']['WORKFLOW_ID'])} WORKFLOW_ID")
 
-    if not shared_experiment and not status["generated_ids"]["FHIR_PROVIDER_ID"]:
+    if is_dedicated and not status["generated_ids"]["FHIR_PROVIDER_ID"]:
         print("\n💡 Run setup_fhir_provider.py to create FHIR provider")
     if not status["generated_ids"]["WORKFLOW_ID"]:
         print("💡 Run create_workflow.py to create a workflow")
 
     # Overall status
     print("\n" + "=" * 60)
-    if shared_experiment:
+    if is_unknown:
+        print("⚠️  Set PHENOML_BASE_URL to determine instance type and requirements")
+    elif is_shared:
         if core_ready:
             print("✅ Shared experiment ready to create workflows!")
             print("   No FHIR provider setup needed - using Medplum sandbox")
@@ -155,10 +181,15 @@ def main():
         action='store_true',
         help='Include JSON output with formatted output'
     )
+    parser.add_argument(
+        '--env-file',
+        type=str,
+        help='Path to .env file (defaults to .env in current directory)'
+    )
 
     args = parser.parse_args()
 
-    status = check_env_vars()
+    status = check_env_vars(env_file=args.env_file)
 
     if args.json:
         print(json.dumps(status, indent=2))
