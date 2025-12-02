@@ -24,7 +24,7 @@ Use this skill when users want to:
 This skill provides a step-by-step interactive experience where the skill **gathers information from the user conversationally**, then **executes reusable Python scripts** with that information to create and test workflows.
 
 **Step 1: Check FHIR Provider Setup**
-- First, run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to check credentials and detect instance type
+- First, locate and run `check_env.py` (search for it using glob `**/check_env.py`) to check credentials and detect instance type
 - **If SHARED EXPERIMENT is detected** (experiment.app.pheno.ml):
   - **Skip FHIR provider setup entirely** - shared experiment uses a pre-configured Medplum sandbox
   - The system automatically uses "experiment-default" as the FHIR_PROVIDER_ID
@@ -32,15 +32,15 @@ This skill provides a step-by-step interactive experience where the skill **gath
   - Proceed directly to Step 2 (Gather Workflow Requirements)
 - **If on a DEDICATED INSTANCE** (e.g., acme.app.pheno.ml), ask the user if they have already created a FHIR provider
 - If NO:
-  - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials
+  - Run `check_env.py` to verify credentials
   - If FHIR credentials are missing, guide them to add the credentials to .env with examples:
     - **Medplum**: `FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4`
     - **Athena**: `FHIR_PROVIDER_BASE_URL=https://api.preview.platform.athenahealth.com/fhir/r4`
     - **Epic**: `FHIR_PROVIDER_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4`
     - **Cerner**: `FHIR_PROVIDER_BASE_URL=https://fhir-myrecord.cerner.com/r4/[tenant-id]`
-  - Run `python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py` to create the provider
+  - Run `setup_fhir_provider.py` to create the provider
   - The script will save FHIR_PROVIDER_ID to .env automatically
-- If YES: Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR_PROVIDER_ID is set
+- If YES: Run `check_env.py` to verify FHIR_PROVIDER_ID is set
 
 **Step 2: Gather Workflow Requirements**
 - Ask what type of data they want the workflow to process (e.g., clinical notes, patient demographics, lab results)
@@ -54,7 +54,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 - Ask for confirmation or allow them to modify
 
 **Step 4: Create the Workflow**
-- Run `python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py` with CLI arguments:
+- Run `create_workflow.py` with CLI arguments:
   - `--name "Workflow Name"`
   - `--instructions "workflow instructions..."`
   - `--sample-data '{"key": "value"}'`
@@ -64,7 +64,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 
 **Step 5: Test the Workflow**
 - Ask what patient/data they want to test with (or provide examples)
-- Run `python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py` with CLI arguments:
+- Run `test_workflow.py` with CLI arguments:
   - `--input-data '{"patient_last_name": "Smith", ...}'`
 - Show the execution results
 - Offer to run additional tests with different data
@@ -72,7 +72,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 ### Key Principles
 
 1. **Gather information conversationally** - Ask the user questions first to understand their needs
-2. **Use the reusable scripts** - Execute the scripts in `.claude/skills/phenoml-workflow/scripts/` with appropriate CLI arguments
+2. **Find and use the reusable scripts** - First locate the scripts using glob `**/phenoml-workflow/scripts/*.py`, then execute them with appropriate CLI arguments
 3. **Prefer CLI arguments over .env** - For workflow-specific data (name, instructions, test data), pass via CLI args rather than adding to .env
 4. **Use .env for credentials** - Guide users to store credentials (PHENOML_*, MEDPLUM_*, etc.) in .env for security
 5. **Guide progressively** - Go step-by-step, ensuring each step completes before moving to the next
@@ -82,8 +82,9 @@ This skill provides a step-by-step interactive experience where the skill **gath
 
 ### Available Scripts
 
+**Important:** Before running any script, first locate it using glob `**/phenoml-workflow/scripts/*.py` to find the correct path.
+
 #### 0. check_env.py
-**Location:** `.claude/skills/phenoml-workflow/scripts/check_env.py`
 
 **Purpose:** Safely verifies which environment variables are set without exposing their values
 
@@ -96,16 +97,16 @@ This skill provides a step-by-step interactive experience where the skill **gath
 **Usage:**
 ```bash
 # Check all credentials (formatted output)
-python3 .claude/skills/phenoml-workflow/scripts/check_env.py
+python3 /path/to/check_env.py
 
 # JSON output only
-python3 .claude/skills/phenoml-workflow/scripts/check_env.py --json
+python3 /path/to/check_env.py --json
 
 # Verbose output (formatted + JSON)
-python3 .claude/skills/phenoml-workflow/scripts/check_env.py --verbose
+python3 /path/to/check_env.py --verbose
 
 # Show help
-python3 .claude/skills/phenoml-workflow/scripts/check_env.py --help
+python3 /path/to/check_env.py --help
 ```
 
 **Security:**
@@ -119,7 +120,6 @@ python3 .claude/skills/phenoml-workflow/scripts/check_env.py --help
 - Exit code 1 if core credentials are missing
 
 #### 1. setup_fhir_provider.py
-**Location:** `.claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py`
 
 **Purpose:** Creates a FHIR provider using credentials from .env
 
@@ -131,13 +131,13 @@ python3 .claude/skills/phenoml-workflow/scripts/check_env.py --help
 **Usage:**
 ```bash
 # Create provider using .env credentials
-python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py
+python3 /path/to/setup_fhir_provider.py
 
 # With custom name and provider type
-python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py --name "My FHIR Server" --provider athena
+python3 /path/to/setup_fhir_provider.py --name "My FHIR Server" --provider athena
 
 # Show help
-python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py --help
+python3 /path/to/setup_fhir_provider.py --help
 ```
 
 **Required .env variables:**
@@ -159,7 +159,6 @@ python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py --help
 - FHIR_PROVIDER_ID saved to .env
 
 #### 2. create_workflow.py
-**Location:** `.claude/skills/phenoml-workflow/scripts/create_workflow.py`
 
 **Purpose:** Creates a PhenoML workflow from .env or CLI arguments
 
@@ -171,17 +170,17 @@ python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py --help
 **Usage:**
 ```bash
 # Create workflow with CLI arguments (recommended)
-python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py \
+python3 /path/to/create_workflow.py \
   --name "Extract Conditions" \
   --instructions "You are a helpful agent who..." \
   --sample-data '{"patient_last_name": "Smith", "diagnosis_text": "hypertension"}' \
   --dynamic-generation true
 
 # Create workflow using .env variables
-python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py
+python3 /path/to/create_workflow.py
 
 # Show help
-python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py --help
+python3 /path/to/create_workflow.py --help
 ```
 
 **Required:**
@@ -197,7 +196,6 @@ python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py --help
 - WORKFLOW_ID saved to .env
 
 #### 3. test_workflow.py
-**Location:** `.claude/skills/phenoml-workflow/scripts/test_workflow.py`
 
 **Purpose:** Tests a workflow with test data from CLI arguments, .env, or JSON file
 
@@ -210,20 +208,20 @@ python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py --help
 **Usage:**
 ```bash
 # Test with CLI arguments (recommended)
-python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py \
+python3 /path/to/test_workflow.py \
   --input-data '{"patient_last_name": "Rippin", "patient_first_name": "Clay", "diagnosis_text": "diabetes"}'
 
 # Test with JSON file
-python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py \
+python3 /path/to/test_workflow.py \
   --input-file test_data.json
 
 # Save results to file
-python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py \
+python3 /path/to/test_workflow.py \
   --input-data '{"patient": "Smith"}' \
   --output-file results.json
 
 # Show help
-python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py --help
+python3 /path/to/test_workflow.py --help
 ```
 
 **Required:**
@@ -238,45 +236,49 @@ python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py --help
 
 When a user asks to "create a workflow to process clinical notes", follow this flow:
 
-1. **Check Prerequisites and Detect Instance Type:**
-   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify credentials and detect instance type
+1. **Locate the Scripts:**
+   - Use glob `**/phenoml-workflow/scripts/*.py` to find all available scripts
+   - Note their paths for use in subsequent steps
+
+2. **Check Prerequisites and Detect Instance Type:**
+   - Run `check_env.py` to verify credentials and detect instance type
    - If credentials are missing, guide user to add them to .env
 
-2. **Handle FHIR Provider Based on Instance Type:**
+3. **Handle FHIR Provider Based on Instance Type:**
 
    **If SHARED EXPERIMENT detected (experiment.app.pheno.ml):**
    - Skip FHIR provider setup entirely
    - Inform user: "You're on the shared experiment, which uses a pre-configured Medplum sandbox. No FHIR setup needed!"
-   - Proceed directly to step 5 (Gather Workflow Requirements)
+   - Proceed directly to step 6 (Gather Workflow Requirements)
 
    **If on a DEDICATED INSTANCE (e.g., acme.app.pheno.ml):**
    - Ask: "Have you already set up a FHIR provider connection? (yes/no)"
 
-3. **If NO - Set Up Provider (dedicated instance only):**
-   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR credentials
+4. **If NO - Set Up Provider (dedicated instance only):**
+   - Run `check_env.py` to verify FHIR credentials
    - If FHIR credentials are missing, guide user to add them to .env with examples:
      - **Medplum**: `FHIR_PROVIDER_BASE_URL=https://api.medplum.com/fhir/R4`
      - **Athena**: `FHIR_PROVIDER_BASE_URL=https://api.preview.platform.athenahealth.com/fhir/r4`
      - **Epic**: `FHIR_PROVIDER_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4`
      - **Cerner**: `FHIR_PROVIDER_BASE_URL=https://fhir-myrecord.cerner.com/r4/[tenant-id]`
-   - Run: `python3 .claude/skills/phenoml-workflow/scripts/setup_fhir_provider.py`
+   - Run `setup_fhir_provider.py`
    - Script will save FHIR_PROVIDER_ID to .env
 
-4. **If YES - Verify Provider (dedicated instance only):**
-   - Run `python3 .claude/skills/phenoml-workflow/scripts/check_env.py` to verify FHIR_PROVIDER_ID is set
-   - If not found, run setup_fhir_provider.py
+5. **If YES - Verify Provider (dedicated instance only):**
+   - Run `check_env.py` to verify FHIR_PROVIDER_ID is set
+   - If not found, run `setup_fhir_provider.py`
 
-5. **Gather Workflow Requirements:**
+6. **Gather Workflow Requirements:**
    - "What kind of data will this workflow process?"
    - "What should the workflow do with this data?"
    - Present common examples to help clarify
 
-6. **Create the Workflow:**
+7. **Create the Workflow:**
    - Gather workflow details conversationally (name, instructions, sample data structure)
    - Determine if dynamic_generation should be true/false based on workflow type
-   - Run with CLI arguments:
+   - Run `create_workflow.py` with CLI arguments:
    ```bash
-   python3 .claude/skills/phenoml-workflow/scripts/create_workflow.py \
+   python3 /path/to/create_workflow.py \
      --name "Workflow Name" \
      --instructions "Detailed instructions..." \
      --sample-data '{"key": "value"}' \
@@ -284,17 +286,17 @@ When a user asks to "create a workflow to process clinical notes", follow this f
    ```
    - Script will save WORKFLOW_ID to .env
 
-7. **Test the Workflow:**
+8. **Test the Workflow:**
    - Ask what data they want to test with
-   - Run with CLI arguments:
+   - Run `test_workflow.py` with CLI arguments:
    ```bash
-   python3 .claude/skills/phenoml-workflow/scripts/test_workflow.py \
+   python3 /path/to/test_workflow.py \
      --input-data '{"patient_last_name": "Smith", ...}'
    ```
    - Shows execution results
    - User can test multiple times with different data
 
-8. **Follow-Up:**
+9. **Follow-Up:**
    - Ask if they want to test with different data
    - Offer to create additional workflows
    - Provide next steps for production use
