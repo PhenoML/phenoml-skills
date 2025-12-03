@@ -25,6 +25,7 @@ A collection of Claude Code plugins and skills that enable developers to rapidly
 - PhenoML account credentials
 - FHIR provider credentials (Medplum, Athena, Epic, Cerner, etc.)
 - Best practices: Update your `.claude/settings.json` to ensure sensitive files can't be accessed (example provided in this repo)
+- IMPORTANT: This plugin is designed for development purposes ONLY. Claude Code provides [details](https://code.claude.com/docs/en/third-party-integrations) on how to configure for various enterprise requirements that you may wish to review. 
 
 ### Installation
 
