@@ -178,7 +178,7 @@ python3 /path/to/create_workflow.py \
   --env-file /user/project/.env \
   --name "Extract Conditions" \
   --instructions "You are a helpful agent who..." \
-  --sample-data '{"patient_last_name": "Smith", "diagnosis_text": "hypertension"}' \
+  --sample-data '{"patient_last_name": "Smith", "diagnosis_text": "Patient presents with generalized anxiety disorder"}' \
   --dynamic-generation true
 
 # Create workflow using .env variables
@@ -212,7 +212,7 @@ python3 /path/to/create_workflow.py --env-file /user/project/.env
 # Test with CLI arguments (recommended)
 python3 /path/to/test_workflow.py \
   --env-file /user/project/.env \
-  --input-data '{"patient_last_name": "Rippin", "patient_first_name": "Clay", "diagnosis_text": "diabetes"}'
+  --input-data '{"patient_last_name": "Rippin", "patient_first_name": "Clay", "diagnosis_text": "generalized anxiety disorder"}'
 
 # Test with JSON file
 python3 /path/to/test_workflow.py \
@@ -316,7 +316,7 @@ When a user asks to "create a workflow to process clinical notes", follow this f
   {
       "patient_last_name": "Smith",
       "patient_first_name": "John", 
-      "diagnosis_text": "hypertension with good control"
+      "diagnosis_text": "patient presents with generalized anxiety disorder"
   }
   ```
 
@@ -400,7 +400,7 @@ workflow = client.workflows.create(
     sample_data={
         "patient_last_name": "Rippin",
         "patient_first_name": "Clay", 
-        "diagnosis_text": "hypertension"
+        "diagnosis_text": "Patient presents with generalized anxiety disorder"
     },
     fhir_provider_id=provider_id,
     verbose=False,
@@ -434,7 +434,7 @@ result = client.workflows.execute(
     input_data={
         "patient_last_name": "Wilson",
         "patient_first_name": "Emma",
-        "diagnosis_text": "Patient presents with elevated blood pressure readings consistent with stage 2 hypertension"
+        "diagnosis_text": "Patient presents with generalized anxiety disorder"
     }
 )
 ```
