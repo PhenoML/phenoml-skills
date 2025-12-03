@@ -396,7 +396,7 @@ provider_id = fhir_provider.data.id
 # For condition creation
 workflow = client.workflows.create(
     name="Extract Conditions from Notes",
-    workflow_instructions="""You are a helpful agent who can create new condition resources from data inputs whether they are in natural language or structured data. First find the patient identifier based on the name of the patient provided. Then always create a new condition resource with a full description of the condition and the patient identifier.""",
+    workflow_instructions=""" You are a helpful agent who can create new condition resources from data inputs whether they are in natural language or structured data. First find the patient identifier based on the name of the patient provided. Then create a new condition resource with a full description of the condition and the patient identifier.""",
     sample_data={
         "patient_last_name": "Rippin",
         "patient_first_name": "Clay", 
