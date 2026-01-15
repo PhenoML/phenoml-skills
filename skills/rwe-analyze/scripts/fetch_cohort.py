@@ -33,10 +33,8 @@ except ImportError:
 
 def fetch_patient_resources(client, patient_id: str, provider: str) -> dict:
     """Fetch all FHIR resources for a patient using $everything operation."""
-    fhir_provider_id = os.environ.get("FHIR_PROVIDER_ID", provider)
-
     result = client.fhir.search(
-        fhir_provider_id=fhir_provider_id,
+        fhir_provider_id=provider,
         fhir_path=f"Patient/{patient_id}/$everything"
     )
 
@@ -122,7 +120,7 @@ def main():
     )
     parser.add_argument(
         "--provider",
-        help="FHIR provider ID (auto-detected if not specified)"
+        help="FHIR provider ID (defaults to FHIR_PROVIDER_ID from .env)"
     )
     args = parser.parse_args()
 
@@ -145,20 +143,14 @@ def main():
         print(f"Error initializing client: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Auto-detect provider if not specified
-    provider = args.provider
+    # Get provider from CLI arg or environment variable
+    provider = args.provider or os.environ.get("FHIR_PROVIDER_ID")
     if not provider:
-        try:
-            result = client.fhir_provider.list()
-            if result.fhir_providers and len(result.fhir_providers) > 0:
-                provider = result.fhir_providers[0].id
-                print(f"Using FHIR provider: {result.fhir_providers[0].name} ({provider})", file=sys.stderr)
-            else:
-                print("Error: No FHIR providers available", file=sys.stderr)
-                sys.exit(1)
-        except Exception as e:
-            print(f"Error fetching FHIR providers: {e}", file=sys.stderr)
-            sys.exit(1)
+        print("Error: FHIR_PROVIDER_ID is required", file=sys.stderr)
+        print("   Set FHIR_PROVIDER_ID in .env, or use --provider", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Using FHIR provider: {provider}", file=sys.stderr)
 
     # Fetch first cohort
     summaries_1 = fetch_cohort_ips(client, args.cohort, provider, "cohort 1")
