@@ -40,7 +40,7 @@ def fetch_cohort_ips(client, description: str, provider: str, label: str) -> lis
             text=description,
             provider=provider
         )
-        patients = cohort_response.patients if hasattr(cohort_response, 'patients') else []
+        patients = cohort_response.patient_ids if hasattr(cohort_response, 'patient_ids') else []
         print(f"Found {len(patients)} patients", file=sys.stderr)
     except Exception as e:
         print(f"Error analyzing cohort: {e}", file=sys.stderr)
