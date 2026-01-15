@@ -7,6 +7,7 @@ A collection of Claude Code plugins and skills that enable developers to rapidly
 ### Plugins
 
 - **phenoml-workflow** - Create and execute PhenoML workflows for healthcare data processing
+- **rwe-analyze** - Conduct RWE analysis on FHIR!
 
 ### Skills
 
