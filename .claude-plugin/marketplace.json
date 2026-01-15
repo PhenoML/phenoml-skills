@@ -6,7 +6,7 @@
   },
   "plugins": [
     {
-      "name": "phenoml-workflow",
+      "name": "phenoml-skills",
       "source": "./"
     }
   ]
