@@ -31,6 +31,31 @@ except ImportError:
     sys.exit(1)
 
 
+def fetch_patient_resources(client, patient_id: str, provider: str) -> dict:
+    """Fetch all FHIR resources for a patient using $everything operation."""
+    fhir_provider_id = os.environ.get("FHIR_PROVIDER_ID", provider)
+
+    result = client.fhir.search(
+        fhir_provider_id=fhir_provider_id,
+        fhir_path=f"Patient/{patient_id}/$everything"
+    )
+
+    # Convert to dict
+    if hasattr(result, 'model_dump'):
+        bundle = result.model_dump()
+    else:
+        bundle = dict(result) if result else {"resourceType": "Bundle", "entry": []}
+
+    # Strip text element from resources
+    if bundle.get("entry"):
+        for entry in bundle["entry"]:
+            resource = entry.get("resource", {})
+            if "text" in resource:
+                del resource["text"]
+
+    return bundle
+
+
 def fetch_cohort_ips(client, description: str, provider: str, label: str) -> list[str]:
     """Fetch patients and generate IPS summaries for a cohort."""
     print(f"Fetching cohort: {description}", file=sys.stderr)
@@ -40,7 +65,7 @@ def fetch_cohort_ips(client, description: str, provider: str, label: str) -> lis
             text=description,
             provider=provider
         )
-        patients = cohort_response.patient_ids if hasattr(cohort_response, 'patient_ids') else []
+        patients = cohort_response.patient_ids if hasattr(cohort_response, 'patient_ids') and cohort_response.patient_ids else []
         print(f"Found {len(patients)} patients", file=sys.stderr)
     except Exception as e:
         print(f"Error analyzing cohort: {e}", file=sys.stderr)
@@ -55,10 +80,12 @@ def fetch_cohort_ips(client, description: str, provider: str, label: str) -> lis
         print(f"Processing {label} patient {i}/{len(patients)}...", file=sys.stderr, end="\r")
 
         try:
-            bundle = client.fhir.search(
-                fhir_provider_id=os.environ.get("FHIR_PROVIDER_ID", provider),
-                fhir_path=f"Patient/{patient_id}/$everything"
-            )
+            # Fetch patient resources using direct FHIR search
+            bundle = fetch_patient_resources(client, patient_id, provider)
+
+            if not bundle.get("entry"):
+                print(f"No resources found for patient {patient_id}", file=sys.stderr)
+                continue
 
             ips_response = client.summary.create(
                 fhir_resources=bundle,
