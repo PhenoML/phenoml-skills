@@ -28,7 +28,7 @@ A collection of Claude Code plugins and skills that enable developers to rapidly
 - Best practices: Update your `.claude/settings.json` to ensure sensitive files can't be accessed (example provided in this repo)
 - IMPORTANT: This plugin is designed for development purposes ONLY. Claude Code provides [details](https://code.claude.com/docs/en/third-party-integrations) on how to configure for various enterprise requirements that you may wish to review. 
 
-### Installation
+### Installation for use in CLI
 
 1. Start Claude Code in your terminal
 ```bash
@@ -44,3 +44,17 @@ claude
 ```bash
 /plugin install phenoml-workflow@phenoml-skills
 ```
+
+### Installation for use in VS Code 
+
+1. In the chat input, type `/` to open the command menu.
+   
+2. Select Manage Plugins
+   
+3. Click Marketplaces
+   
+4. Paste the repo URL: `https://github.com/PhenoML/phenoml-skills`
+   
+5. Click Install
+    
+6. PhenoML Skills will now appear in your Plugins list!
