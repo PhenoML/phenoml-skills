@@ -31,7 +31,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 - If the user gets import errors when running scripts, guide them to install these packages
 
 **Step 1: Check FHIR Provider Setup**
-- First, locate and run `check_env.py` (search for it using glob `**/check_env.py`) to check credentials and detect instance type
+- First, locate and run `scripts/check_env.py` from the directory containing this `SKILL.md` to check credentials and detect instance type. In Claude Code, `${CLAUDE_SKILL_DIR}` can be used when available.
 - **If SHARED EXPERIMENT is detected** (experiment.app.pheno.ml):
   - **Skip FHIR provider setup entirely** - shared experiment uses a pre-configured Medplum sandbox
   - The system automatically uses "experiment-default" as the FHIR_PROVIDER_ID
@@ -79,7 +79,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 ### Key Principles
 
 1. **Gather information conversationally** - Ask the user questions first to understand their needs
-2. **Find and use the reusable scripts** - First locate the scripts using glob `**/phenoml-workflow/scripts/*.py`, then execute them with appropriate CLI arguments
+2. **Find and use the reusable scripts** - Use the `scripts/*.py` files in the directory containing this `SKILL.md`, then execute them with appropriate CLI arguments
 3. **Always pass --env-file** - Since the scripts may be in a different directory than the user's project, always pass `--env-file /path/to/user/project/.env` to ensure the scripts find the correct .env file (use the user's current working directory)
 4. **Prefer CLI arguments over .env** - For workflow-specific data (name, instructions, test data), pass via CLI args rather than adding to .env
 5. **Use .env for credentials** - Guide users to store credentials (PHENOML_*, MEDPLUM_*, etc.) in .env for security
@@ -91,7 +91,7 @@ This skill provides a step-by-step interactive experience where the skill **gath
 ### Available Scripts
 
 **Important:**
-1. Before running any script, first locate it using glob `**/phenoml-workflow/scripts/*.py` to find the correct path.
+1. Before running any script, first locate the directory containing this `SKILL.md`; the scripts are in its `scripts/` subdirectory. In Claude Code, `${CLAUDE_SKILL_DIR}` can be used when available.
 2. Always pass `--env-file` pointing to the user's project .env file (their current working directory).
 
 #### 0. check_env.py
@@ -239,7 +239,7 @@ python3 /path/to/test_workflow.py \
 When a user asks to "create a workflow to process clinical notes", follow this flow:
 
 1. **Locate the Scripts:**
-   - Use glob `**/phenoml-workflow/scripts/*.py` to find all available scripts
+   - Locate the directory containing this `SKILL.md` and use its `scripts/*.py` files
    - Note their paths for use in subsequent steps
 
 2. **Check Prerequisites and Detect Instance Type:**

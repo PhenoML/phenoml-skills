@@ -1,0 +1,4 @@
+interface:
+  display_name: "PhenoML Workflow"
+  short_description: "Create and test PhenoML workflows"
+  default_prompt: "Use $phenoml-workflow to create and test a PhenoML healthcare data workflow."

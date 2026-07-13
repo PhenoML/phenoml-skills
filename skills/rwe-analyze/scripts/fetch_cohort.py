@@ -3,7 +3,7 @@
 Fetch Cohort Script
 
 Fetches patient data and generates IPS summaries for one or two cohorts.
-Claude interprets the summaries to provide analysis, comparison, or feasibility assessment.
+The active AI agent interprets the summaries to provide analysis, comparison, or feasibility assessment.
 
 Usage:
     # Single cohort
@@ -29,6 +29,24 @@ try:
 except ImportError:
     print("Error: phenoml not installed. Run: pip install phenoml")
     sys.exit(1)
+
+
+SHARED_EXPERIMENT_DEFAULT_FHIR_PROVIDER_ID = "experiment-default"
+
+
+def is_shared_experiment(base_url: str | None) -> bool:
+    """Return True when the PhenoML base URL points at the shared experiment."""
+    return bool(base_url and "experiment" in base_url.lower())
+
+
+def resolve_provider(cli_provider: str | None, base_url: str | None) -> tuple[str | None, bool]:
+    """Resolve the FHIR provider ID and whether it came from the shared default."""
+    provider = cli_provider or os.environ.get("FHIR_PROVIDER_ID")
+    if provider:
+        return provider, False
+    if is_shared_experiment(base_url):
+        return SHARED_EXPERIMENT_DEFAULT_FHIR_PROVIDER_ID, True
+    return None, False
 
 
 def fetch_patient_resources(client, patient_id: str, provider: str) -> dict:
@@ -133,24 +151,29 @@ def main():
         print("Error: PHENOML_USERNAME and PHENOML_PASSWORD must be set", file=sys.stderr)
         sys.exit(1)
 
+    base_url = os.environ.get("PHENOML_BASE_URL", "https://experiment.app.pheno.ml")
+
     try:
         client = Client(
             username=os.environ["PHENOML_USERNAME"],
             password=os.environ["PHENOML_PASSWORD"],
-            base_url=os.environ.get("PHENOML_BASE_URL", "https://experiment.app.pheno.ml")
+            base_url=base_url
         )
     except Exception as e:
         print(f"Error initializing client: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Get provider from CLI arg or environment variable
-    provider = args.provider or os.environ.get("FHIR_PROVIDER_ID")
+    # Get provider from CLI arg, environment variable, or shared experiment default.
+    provider, using_shared_default = resolve_provider(args.provider, base_url)
     if not provider:
         print("Error: FHIR_PROVIDER_ID is required", file=sys.stderr)
-        print("   Set FHIR_PROVIDER_ID in .env, or use --provider", file=sys.stderr)
+        print("   Set FHIR_PROVIDER_ID in .env, use --provider, or use the shared experiment base URL", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Using FHIR provider: {provider}", file=sys.stderr)
+    if using_shared_default:
+        print(f"Using FHIR provider: {provider} (shared experiment default)", file=sys.stderr)
+    else:
+        print(f"Using FHIR provider: {provider}", file=sys.stderr)
 
     # Fetch first cohort
     summaries_1 = fetch_cohort_ips(client, args.cohort, provider, "cohort 1")

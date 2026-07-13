@@ -1,0 +1,4 @@
+interface:
+  display_name: "RWE Analyze"
+  short_description: "Analyze RWE cohorts with PhenoML"
+  default_prompt: "Use $rwe-analyze to analyze a PhenoML real-world evidence cohort."

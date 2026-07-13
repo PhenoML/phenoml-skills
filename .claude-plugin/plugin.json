@@ -1,6 +1,6 @@
 {
   "name": "phenoml-skills",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "PhenoML skills for healthcare data processing: workflow creation, condition extraction, patient registration, and real-world evidence analysis",
   "author": {
     "name": "PhenoML",
