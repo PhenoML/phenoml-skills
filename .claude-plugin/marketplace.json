@@ -1,5 +1,9 @@
 {
   "name": "phenoml-skills",
+  "description": "PhenoML skills for workflow creation and real-world evidence analysis in Codex and Claude Code.",
+  "metadata": {
+    "description": "PhenoML skills for workflow creation and real-world evidence analysis in Codex and Claude Code."
+  },
   "owner": {
     "name": "PhenoML",
     "email": "hello@phenoml.com"
@@ -7,6 +11,8 @@
   "plugins": [
     {
       "name": "phenoml-skills",
+      "description": "Healthcare data workflow and RWE analysis skills for PhenoML.",
+      "version": "0.0.4",
       "source": "./"
     }
   ]

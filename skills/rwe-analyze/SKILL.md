@@ -1,10 +1,15 @@
+---
+name: rwe-analyze
+description: Analyze real-world evidence cohorts using PhenoML APIs and FHIR data. Use when defining patient cohorts from natural language, generating population statistics, comparing cohorts, or assessing clinical study feasibility.
+---
+
 # RWE Cohort Analysis Skill
 
 This skill provides real-world evidence (RWE) analysis using PhenoML APIs. It enables biopharma analysts to define patient cohorts, generate population statistics, compare cohorts, and assess study feasibility.
 
 ## How It Works
 
-A single script (`fetch_cohort.py`) fetches patient data and generates IPS (International Patient Summary) natural language summaries. YOU (Claude) then interpret these summaries to provide whatever analysis the user needs.
+A single script (`fetch_cohort.py`) fetches patient data and generates IPS (International Patient Summary) natural language summaries. The active AI agent then interprets these summaries to provide whatever analysis the user needs.
 
 ## When to Use This Skill
 
@@ -28,8 +33,10 @@ Before using this skill, ensure:
 Always start by checking the environment configuration:
 
 ```bash
-python skills/rwe-analyze/scripts/check_env.py --env-file .env
+python /path/to/skill/scripts/check_env.py --env-file .env
 ```
+
+Resolve `/path/to/skill` as the directory containing this `SKILL.md`. In Claude Code, `${CLAUDE_SKILL_DIR}` can be used when available.
 
 If credentials are missing, guide the user to set up their `.env` file with:
 - PHENOML_USERNAME
@@ -42,14 +49,14 @@ Use the single fetch script for all use cases:
 
 **Single cohort:**
 ```bash
-python skills/rwe-analyze/scripts/fetch_cohort.py \
+python /path/to/skill/scripts/fetch_cohort.py \
   --cohort "<natural language criteria>" \
   --env-file .env
 ```
 
 **Two cohorts for comparison:**
 ```bash
-python skills/rwe-analyze/scripts/fetch_cohort.py \
+python /path/to/skill/scripts/fetch_cohort.py \
   --cohort "<first cohort>" \
   --cohort-2 "<second cohort>" \
   --env-file .env
@@ -57,7 +64,7 @@ python skills/rwe-analyze/scripts/fetch_cohort.py \
 
 ### Step 2: Analyze the IPS Summaries
 
-The script outputs IPS natural language summaries. YOU (Claude) then analyze them based on what the user asked for:
+The script outputs IPS natural language summaries. Analyze them based on what the user asked for:
 
 **Population Analysis:**
 - Total patient count

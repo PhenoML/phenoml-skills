@@ -65,14 +65,21 @@ def print_status(results: dict, verbose: bool = False) -> None:
         print("    PHENOML_PASSWORD=your_password")
         print("    PHENOML_BASE_URL=https://experiment.app.pheno.ml")
 
-    print("\nFHIR Provider (for dedicated instances):")
-    for var in results["fhir"]:
-        status = "\u2705" if var["set"] else "\u2b1c"
-        print(f"  {status} {var['name']}")
-
     if instance_type == "shared":
+        print("\nFHIR Provider:")
+        provider_id = next(var for var in results["fhir"] if var["name"] == "FHIR_PROVIDER_ID")
+        if provider_id["set"]:
+            print("  \u2705 FHIR_PROVIDER_ID")
+        else:
+            print("  \u2705 FHIR_PROVIDER_ID (using shared experiment default)")
         print("\n\u2139\ufe0f  FHIR provider credentials not required for shared experiments.")
-    elif not all(var["set"] for var in results["fhir"]):
+    else:
+        print("\nFHIR Provider (for dedicated instances):")
+        for var in results["fhir"]:
+            status = "\u2705" if var["set"] else "\u2b1c"
+            print(f"  {status} {var['name']}")
+
+    if instance_type != "shared" and not all(var["set"] for var in results["fhir"]):
         print("\n\u26a0\ufe0f  FHIR provider not configured.")
         print("  For dedicated instances, configure your FHIR provider.")
 
@@ -114,9 +121,9 @@ def main():
 
     # Check FHIR provider credentials (for dedicated instances)
     fhir_vars = [
-        check_env_var("FHIR_BASE_URL"),
-        check_env_var("FHIR_CLIENT_ID"),
-        check_env_var("FHIR_CLIENT_SECRET"),
+        check_env_var("FHIR_PROVIDER_BASE_URL"),
+        check_env_var("FHIR_PROVIDER_CLIENT_ID"),
+        check_env_var("FHIR_PROVIDER_CLIENT_SECRET"),
         check_env_var("FHIR_PROVIDER_ID")
     ]
 
